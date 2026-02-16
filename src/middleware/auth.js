@@ -12,8 +12,7 @@ const User = require('../modules/users/user.model');
  */
 async function authenticate(req, res, next) {
   try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    const token = req.cookies.accessToken;
     if (!token) {
       throw new UnauthorizedError('Access token required');
     }
@@ -45,8 +44,7 @@ async function authenticate(req, res, next) {
  */
 async function optionalAuth(req, res, next) {
   try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    const token = req.cookies.accessToken;
     if (!token) return next();
     const decoded = jwt.verify(token, env.jwt.accessSecret);
     const user = await User.findById(decoded.userId).select('-password').lean();

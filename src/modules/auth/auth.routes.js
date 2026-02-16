@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.post('/login', validate(loginSchema), authController.login);
 router.post('/refresh', validate(refreshSchema), authController.refresh);
-router.post('/logout', authenticate, authController.logout);
+router.post('/logout', authController.logout);
 router.get('/me', authenticate, authController.getMe);
 router.post('/register', authenticate, requireRole(ROLES.ADMIN), validate(registerSchema), authController.register);
 

@@ -44,73 +44,78 @@ The frontend currently assumes a single role (agent). Role-based access must be 
 
 ## 2. Authentication Requirements
 
+**Current implementation uses HttpOnly cookie-based auth.** Tokens are never returned or accepted in the request/response body (or Authorization header). See **FRONTEND_AUTH_MIGRATION.md** for what the frontend must change and how to integrate.
+
 ### 2.1 Endpoints
 
 #### POST `/api/v1/auth/login`
 
-Authenticate with email and password; return access token and user.
+Authenticate with email and password. Server sets `accessToken` and `refreshToken` in HttpOnly cookies; response body contains only user.
 
 | Aspect | Specification |
 |--------|----------------|
 | **Request body** | `{ "email": "string", "password": "string" }` |
-| **Response body (200)** | `{ "success": true, "data": { "user": { "id": "string", "name": "string", "email": "string" }, "token": "string", "refreshToken": "string" } }` |
-| **Headers** | `Content-Type: application/json` |
+| **Request** | Must be sent with **credentials** (e.g. `credentials: 'include'` / `withCredentials: true`) so cookies can be set. |
+| **Response body (200)** | `{ "success": true, "user": { "id": "string", "name": "string", "email": "string" } }` — **no** `token` or `refreshToken` in body. |
+| **Response headers** | `Set-Cookie` for `accessToken` and `refreshToken` (HttpOnly, secure in production, sameSite strict). |
 | **Error (401)** | Invalid credentials: `{ "success": false, "error": { "code": "UNAUTHORIZED", "message": "..." } }` |
 | **Error (422)** | Validation: `{ "success": false, "error": { "code": "VALIDATION_ERROR", "message": "...", "details": [...] } }` |
 
-**Frontend usage:** The app dispatches `loginSuccess({ user: action.payload.user, token: action.payload.token })`. The backend must return `user` with at least `id`, `name`, `email`. The frontend stores `token` and uses it as Bearer token; `refreshToken` may be stored for refresh flow.
+**Frontend usage:** Send credentials on login. Store only `user` from the response; do not store or send tokens. Rely on cookies for subsequent requests.
 
 ---
 
 #### POST `/api/v1/auth/refresh`
 
-Issue a new access token using a valid refresh token.
+Issue new access (and refresh) tokens. Server reads refresh token from cookie and sets new tokens via `Set-Cookie`.
 
 | Aspect | Specification |
 |--------|----------------|
-| **Request body** | `{ "refreshToken": "string" }` |
-| **Response body (200)** | `{ "success": true, "data": { "token": "string", "refreshToken": "string" } }` |
-| **Headers** | `Content-Type: application/json` |
+| **Request body** | None (or empty). Refresh token is read from `refreshToken` cookie. |
+| **Request** | Must be sent with **credentials** so the refresh cookie is sent. |
+| **Response body (200)** | `{ "success": true }` — **no** tokens in body. |
+| **Response headers** | New `Set-Cookie` for `accessToken` and `refreshToken`. |
 | **Error (401)** | `{ "success": false, "error": { "code": "INVALID_TOKEN", "message": "..." } }` |
 
 ---
 
 #### POST `/api/v1/auth/logout`
 
-Invalidate refresh token (optional; frontend may clear local token only).
+Clear auth cookies. No authentication required.
 
 | Aspect | Specification |
 |--------|----------------|
-| **Request body** | Optional: `{ "refreshToken": "string" }` or empty. |
-| **Response body (200)** | `{ "success": true }` or `{ "success": true, "data": {} }` |
-| **Headers** | `Authorization: Bearer <accessToken>`, `Content-Type: application/json` |
+| **Request body** | None. |
+| **Request** | Should be sent with **credentials** so cookies are sent and can be cleared. |
+| **Response body (200)** | `{ "success": true, "message": "Logged out successfully" }` |
+| **Response headers** | Cookies `accessToken` and `refreshToken` cleared. |
 
 ---
 
 #### GET `/api/v1/auth/me`
 
-Return the current authenticated user.
+Return the current authenticated user. Access token is read from cookie.
 
 | Aspect | Specification |
 |--------|----------------|
-| **Request body** | None |
+| **Request** | Must be sent with **credentials** so the `accessToken` cookie is sent. **Do not** send `Authorization: Bearer ...`. |
 | **Response body (200)** | `{ "success": true, "data": { "user": { "id": "string", "name": "string", "email": "string" } } }` |
-| **Headers** | `Authorization: Bearer <accessToken>` |
-| **Error (401)** | `{ "success": false, "error": { "code": "UNAUTHORIZED", "message": "..." } }` |
+| **Error (401)** | `{ "success": false, "error": { "code": "UNAUTHORIZED", "message": "..." } }` or `INVALID_TOKEN` |
 
 ---
 
-### 2.2 Token Format
+### 2.2 Token format (server-side; not sent in JSON)
 
-- **Authorization header:** `Authorization: Bearer <accessToken>`
-- **Access token:** JWT containing at least: `sub` (user id), `exp` (expiration), and optionally `email`, `name`. Used for all protected API requests.
-- **Refresh token:** Opaque or JWT, stored by client and sent only to `/auth/refresh`; not sent on every request.
+- **Access token:** JWT in cookie `accessToken`, path `/`, HttpOnly, short-lived (e.g. 15 min). Used for all protected requests; server reads from cookie.
+- **Refresh token:** JWT in cookie `refreshToken`, path `/api/v1/auth/refresh`, HttpOnly, long-lived (e.g. 70 days). Sent only to the refresh endpoint by the browser.
 
-### 2.3 Expiration and Refresh Behavior
+**Frontend:** Do not read or set these tokens. Use **credentials** on every API request so cookies are sent automatically.
 
-- Access token: short-lived (e.g. 15–60 minutes). Backend must reject expired access tokens with `401` and `INVALID_TOKEN` or `UNAUTHORIZED`.
-- Refresh token: long-lived (e.g. 7–30 days). When access token expires, client calls `POST /api/v1/auth/refresh` with refresh token to get a new access (and optionally new refresh) token.
-- Frontend interceptor on `401`: may trigger refresh then retry, or clear auth and redirect to login.
+### 2.3 Expiration and refresh behavior
+
+- Access token: short-lived. Expired → 401. Frontend should call `POST /api/v1/auth/refresh` with credentials; on 200, retry the failed request with credentials.
+- Refresh token: long-lived. If refresh returns 401, treat as logged out (clear user, redirect to login).
+- All requests to the API must use **credentials** (e.g. `credentials: 'include'` or `withCredentials: true`).
 
 ---
 
@@ -548,9 +553,9 @@ Backend must use the following codes in `error.code`:
 
 ## 13. Required Headers
 
-| Header | When | Value |
-|--------|------|--------|
-| `Authorization` | All protected routes | `Bearer <accessToken>` |
+| Header / behavior | When | Value |
+|------------------|------|--------|
+| **Credentials** | All requests to the API (login, refresh, logout, me, and all protected routes) | Send cookies: use `credentials: 'include'` (fetch) or `withCredentials: true` (axios). **Do not** send `Authorization: Bearer`; auth uses HttpOnly cookies. |
 | `Content-Type` | Request with body | `application/json` |
 
 Responses: `Content-Type: application/json`.
@@ -602,7 +607,7 @@ Optional: `JWT_ACCESS_EXPIRES_IN`, `JWT_REFRESH_EXPIRES_IN`, `NODE_ENV`, `API_BA
 
 | Requirement | Specification |
 |-------------|----------------|
-| JWT authentication | All endpoints except login (and optionally refresh) require valid `Authorization: Bearer <accessToken>`. |
+| Cookie-based auth | All endpoints except login (and optionally refresh) require a valid `accessToken` cookie. Frontend must send **credentials** on every request so cookies are sent; no Bearer header. |
 | Role-based access | Enforce by user role; at minimum, data must be restricted to the authenticated user (or tenant). |
 | Data isolation | Clients, deliveries, payments, products, planning, circuits, work sessions must be filtered by user (or tenant) so that one user cannot read or modify another user’s data. |
 
@@ -622,9 +627,9 @@ These shapes are derived from Redux slices and screens. Backend responses should
 
 ### 19.1 Auth (authSlice)
 
-- **After login:**  
-  `{ user: { id: string, name: string, email: string }, token: string }`  
-  Stored in state: `user`, `token`, `isAuthenticated: true`.
+- **After login (current backend):**  
+  Response body: `{ success: true, user: { id: string, name: string, email: string } }` — **no** `token` or `refreshToken` in response (tokens are in HttpOnly cookies).  
+  Stored in state: `user`, `isAuthenticated: true`. Do **not** store tokens; send **credentials** on all API requests so cookies are sent. See **FRONTEND_AUTH_MIGRATION.md**.
 
 ### 19.2 Work Session (workSessionSlice + workSessionSelectors)
 

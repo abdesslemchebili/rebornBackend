@@ -24,11 +24,9 @@ const clientSchema = new mongoose.Schema(
       type: {
         type: String,
         enum: ['Point'],
-        default: 'Point',
       },
       coordinates: {
         type: [Number], // [longitude, latitude]
-        default: undefined,
       },
     },
     type: { type: String, enum: CLIENT_TYPES, default: 'mechanic' },
