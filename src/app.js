@@ -43,6 +43,16 @@ if (env.swaggerEnabled) {
   app.use('/api-docs', ...swaggerMiddleware());
 }
 
+// Root: friendly response when someone opens the service URL
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'REBORN API',
+    api: env.apiPrefix,
+    docs: env.swaggerEnabled ? `${req.protocol}://${req.get('host')}/api-docs` : null,
+  });
+});
+
 app.use(env.apiPrefix, routes);
 
 // 404 (contract: success: false, error: { code, message })
