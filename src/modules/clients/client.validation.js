@@ -26,6 +26,8 @@ const createSchema = Joi.object({
   phone: Joi.string().trim().allow(''),
   address: addressSchema,
   geoLocation: geoLocationSchema.allow(null),
+  latitude: Joi.number().allow(null),
+  longitude: Joi.number().allow(null),
   segment: Joi.string().valid(...ALL_SEGMENTS).default('STANDARD'),
   circuit: objectId.allow('', null),
   isActive: Joi.boolean().default(true),
@@ -37,7 +39,7 @@ const createSchema = Joi.object({
   ownerPicture: Joi.string().trim().allow(''),
   shopPicture: Joi.string().trim().allow(''),
   notes: Joi.string().trim().allow(''),
-}).unknown(false);
+}).unknown(true);
 
 const updateSchema = Joi.object({
   name: Joi.string().trim(),
@@ -48,6 +50,8 @@ const updateSchema = Joi.object({
   phone: Joi.string().trim().allow(''),
   address: addressSchema,
   geoLocation: geoLocationSchema.allow(null),
+  latitude: Joi.number().allow(null),
+  longitude: Joi.number().allow(null),
   segment: Joi.string().valid(...ALL_SEGMENTS),
   circuit: objectId.allow('', null),
   isActive: Joi.boolean(),
@@ -59,7 +63,7 @@ const updateSchema = Joi.object({
   ownerPicture: Joi.string().trim().allow(''),
   shopPicture: Joi.string().trim().allow(''),
   notes: Joi.string().trim().allow(''),
-}).min(1).unknown(false);
+}).min(1).unknown(true);
 
 const listQuerySchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),

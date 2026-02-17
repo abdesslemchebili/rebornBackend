@@ -1,0 +1,380 @@
+{
+  "info": {
+    "name": "REBORN API",
+    "description": "REBORN Backend API. **Auth:** Run **Auth > Login** first (use admin@reborn.tn / Admin123! if you ran the seed). The server sets HttpOnly cookies; Postman will send them on subsequent requests. Switch baseUrl to `http://localhost:3000` for local or keep `https://rebornbackend.onrender.com` for production.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://rebornbackend.onrender.com" },
+    { "key": "clientId", "value": "" },
+    { "key": "productId", "value": "" },
+    { "key": "deliveryId", "value": "" },
+    { "key": "paymentId", "value": "" },
+    { "key": "circuitId", "value": "" },
+    { "key": "planningId", "value": "" },
+    { "key": "sessionId", "value": "" },
+    { "key": "userId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/health", "host": ["{{baseUrl}}"], "path": ["api", "v1", "health"] },
+            "description": "No auth required."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.test('Has user', () => { const j = pm.response.json(); pm.expect(j.success).to.be.true; pm.expect(j.user).to.have.property('id'); });"],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@reborn.tn\",\n  \"password\": \"Admin123!\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "login"] },
+            "description": "Run this first. Server sets accessToken and refreshToken cookies; Postman sends them on later requests."
+          }
+        },
+        {
+          "name": "Refresh token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "refresh"] },
+            "description": "Uses refreshToken cookie. No body."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "logout"] }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "me"] },
+            "description": "Current user. Requires auth cookie."
+          }
+        },
+        {
+          "name": "Register (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@reborn.tn\",\n  \"password\": \"SecurePass123!\",\n  \"firstName\": \"New\",\n  \"lastName\": \"User\",\n  \"role\": \"COMMERCIAL\",\n  \"isActive\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "v1", "auth", "register"] },
+            "description": "ADMIN only. Creates a new user."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "List categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/categories", "host": ["{{baseUrl}}"], "path": ["api", "v1", "categories"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        { "name": "List users", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/users?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}] } } },
+        { "name": "Get user by ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "{{userId}}"] } } },
+        {
+          "name": "Create user (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"agent@reborn.tn\",\n  \"password\": \"Agent123!\",\n  \"firstName\": \"Agent\",\n  \"lastName\": \"One\",\n  \"role\": \"COMMERCIAL\",\n  \"isActive\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/users", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users"] }
+          }
+        },
+        {
+          "name": "Update user (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Updated\",\n  \"isActive\": true\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "{{userId}}"] }
+          }
+        },
+        { "name": "Delete user (ADMIN)", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/users/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users", "{{userId}}"] } } }
+      ]
+    },
+    {
+      "name": "Clients",
+      "item": [
+        { "name": "List clients", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/clients?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "clients"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}] } } },
+        { "name": "Clients near", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/clients/near?lat=36.8&lng=10.18&maxDistance=50000", "host": ["{{baseUrl}}"], "path": ["api", "v1", "clients", "near"], "query": [{"key": "lat", "value": "36.8"}, {"key": "lng", "value": "10.18"}, {"key": "maxDistance", "value": "50000"}] } } },
+        { "name": "Get client by ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "clients", "{{clientId}}"] } } },
+        {
+          "name": "Create client",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Client\",\n  \"type\": \"mechanic\",\n  \"shopName\": \"Shop Test\",\n  \"code\": \"T001\",\n  \"email\": \"client@test.tn\",\n  \"phone\": \"+216 70 000 000\",\n  \"address\": { \"city\": \"Tunis\", \"governorate\": \"Tunis\" },\n  \"segment\": \"STANDARD\",\n  \"isActive\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/clients", "host": ["{{baseUrl}}"], "path": ["api", "v1", "clients"] }
+          }
+        },
+        {
+          "name": "Update client",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Updated Client Name\",\n  \"phone\": \"+216 71 111 111\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "clients", "{{clientId}}"] }
+          }
+        },
+        { "name": "Delete client (ADMIN)", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/clients/{{clientId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "clients", "{{clientId}}"] } } }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        { "name": "List products", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/products?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "products"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}] } } },
+        { "name": "Get product by ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "products", "{{productId}}"] } } },
+        {
+          "name": "Create product (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Product X\",\n  \"code\": \"PX001\",\n  \"category\": \"Industrial\",\n  \"unit\": \"unit\",\n  \"price\": 100,\n  \"stock\": 50,\n  \"active\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/products", "host": ["{{baseUrl}}"], "path": ["api", "v1", "products"] }
+          }
+        },
+        {
+          "name": "Update product (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Product X Updated\",\n  \"price\": 120\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "products", "{{productId}}"] }
+          }
+        },
+        {
+          "name": "Update product stock (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 30\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/products/{{productId}}/stock", "host": ["{{baseUrl}}"], "path": ["api", "v1", "products", "{{productId}}", "stock"] }
+          }
+        },
+        { "name": "Deactivate product (ADMIN)", "request": { "method": "PATCH", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/products/{{productId}}/deactivate", "host": ["{{baseUrl}}"], "path": ["api", "v1", "products", "{{productId}}", "deactivate"] } } },
+        { "name": "Delete product (ADMIN)", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "products", "{{productId}}"] } } }
+      ]
+    },
+    {
+      "name": "Deliveries",
+      "item": [
+        { "name": "List deliveries", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/deliveries?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}] } } },
+        { "name": "Deliveries by date", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/deliveries/by-date?date=2025-02-16", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries", "by-date"], "query": [{"key": "date", "value": "2025-02-16"}] } } },
+        { "name": "Deliveries by client", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/deliveries/by-client/{{clientId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries", "by-client", "{{clientId}}"] } } },
+        { "name": "Get delivery by ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/deliveries/{{deliveryId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries", "{{deliveryId}}"] } } },
+        {
+          "name": "Create delivery",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"items\": [\n    { \"productId\": \"{{productId}}\", \"qty\": 2 }\n  ],\n  \"status\": \"pending\",\n  \"paymentType\": \"CASH\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/deliveries", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries"] }
+          }
+        },
+        {
+          "name": "Update delivery",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": { "mode": "raw", "raw": "{\n  \"notes\": \"Updated notes\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/deliveries/{{deliveryId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries", "{{deliveryId}}"] }
+          }
+        },
+        {
+          "name": "Update delivery status",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"completed\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/deliveries/{{deliveryId}}/status", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries", "{{deliveryId}}", "status"] }
+          }
+        },
+        { "name": "Delete delivery (ADMIN)", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/deliveries/{{deliveryId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries", "{{deliveryId}}"] } } }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        { "name": "List payments", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/payments?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}] } } },
+        { "name": "Payments by client", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/payments/by-client/{{clientId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments", "by-client", "{{clientId}}"] } } },
+        { "name": "Payments by date range", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/payments/by-date-range?fromDate=2025-02-01&toDate=2025-02-28", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments", "by-date-range"], "query": [{"key": "fromDate", "value": "2025-02-01"}, {"key": "toDate", "value": "2025-02-28"}] } } },
+        { "name": "Get payment by ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/payments/{{paymentId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments", "{{paymentId}}"] } } },
+        {
+          "name": "Create payment",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"{{clientId}}\",\n  \"amount\": 500,\n  \"method\": \"cash\",\n  \"status\": \"completed\",\n  \"currency\": \"TND\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/payments", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments"] }
+          }
+        },
+        {
+          "name": "Update payment",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"completed\",\n  \"notes\": \"Received\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/{{paymentId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments", "{{paymentId}}"] }
+          }
+        },
+        { "name": "Delete payment (ADMIN)", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/payments/{{paymentId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments", "{{paymentId}}"] } } }
+      ]
+    },
+    {
+      "name": "Circuits",
+      "item": [
+        { "name": "List circuits", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/circuits?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "circuits"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}] } } },
+        { "name": "Get circuit by ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/circuits/{{circuitId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "circuits", "{{circuitId}}"] } } },
+        { "name": "Get circuit clients", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/circuits/{{circuitId}}/clients", "host": ["{{baseUrl}}"], "path": ["api", "v1", "circuits", "{{circuitId}}", "clients"] } } },
+        {
+          "name": "Create circuit",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Circuit Test\",\n  \"code\": \"CT\",\n  \"region\": \"Tunis\",\n  \"isActive\": true\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/circuits", "host": ["{{baseUrl}}"], "path": ["api", "v1", "circuits"] }
+          }
+        },
+        {
+          "name": "Update circuit",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Circuit Test Updated\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/circuits/{{circuitId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "circuits", "{{circuitId}}"] }
+          }
+        },
+        { "name": "Delete circuit (ADMIN)", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/circuits/{{circuitId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "circuits", "{{circuitId}}"] } } }
+      ]
+    },
+    {
+      "name": "Planning",
+      "item": [
+        { "name": "List planning", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/planning?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "planning"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}] } } },
+        { "name": "Planning by date", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/planning/by-date?date=2025-02-16", "host": ["{{baseUrl}}"], "path": ["api", "v1", "planning", "by-date"], "query": [{"key": "date", "value": "2025-02-16"}] } } },
+        { "name": "Get planning by ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/planning/{{planningId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "planning", "{{planningId}}"] } } },
+        {
+          "name": "Create planning",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tournée Test\",\n  \"date\": \"2025-02-20\",\n  \"time\": \"09:00\",\n  \"status\": \"scheduled\",\n  \"stops\": [\n    { \"clientId\": \"{{clientId}}\", \"order\": 0, \"action\": \"delivery\" }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/planning", "host": ["{{baseUrl}}"], "path": ["api", "v1", "planning"] }
+          }
+        },
+        {
+          "name": "Update planning",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"completed\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/planning/{{planningId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "planning", "{{planningId}}"] }
+          }
+        },
+        { "name": "Delete planning", "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/planning/{{planningId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "planning", "{{planningId}}"] } } }
+      ]
+    },
+    {
+      "name": "Work Sessions",
+      "item": [
+        { "name": "Get active session", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/work-sessions/active", "host": ["{{baseUrl}}"], "path": ["api", "v1", "work-sessions", "active"] } } },
+        { "name": "Session history", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/work-sessions/history?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "work-sessions", "history"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}] } } },
+        { "name": "Get session recap", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/work-sessions/{{sessionId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "work-sessions", "{{sessionId}}"] } } },
+        {
+          "name": "Start session",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/work-sessions/start", "host": ["{{baseUrl}}"], "path": ["api", "v1", "work-sessions", "start"] }
+          }
+        },
+        {
+          "name": "End session",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": { "mode": "raw", "raw": "{\n  \"sessionId\": \"{{sessionId}}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/work-sessions/end", "host": ["{{baseUrl}}"], "path": ["api", "v1", "work-sessions", "end"] }
+          }
+        },
+        {
+          "name": "Add expense",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 25.5,\n  \"label\": \"Fuel\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/work-sessions/expenses", "host": ["{{baseUrl}}"], "path": ["api", "v1", "work-sessions", "expenses"] }
+          }
+        }
+      ]
+    }
+  ]
+}

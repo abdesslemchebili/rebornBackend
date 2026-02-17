@@ -12,20 +12,26 @@ function addressToString(addr) {
   return parts.length ? parts.join(', ') : null;
 }
 
-/** Contract shape: id, name, type, address, phone, email, totalOrders, lastVisit, archived, latitude, longitude, matriculeFiscale, ownerName, ownerPicture, shopPicture. */
+/** Contract shape per BACKEND_CLIENT_API_SPEC: id, name, type, segment, isActive, address (object or null), phone, email, latitude, longitude, matriculeFiscale, ownerName, ownerPicture, shopPicture, archived, totalOrders, lastVisit. */
 function toContractClient(doc) {
   if (!doc) return null;
   const coords = doc.geoLocation?.coordinates;
+  const address = doc.address && typeof doc.address === 'object'
+    ? { city: doc.address.city ?? null, governorate: doc.address.governorate ?? null }
+    : (addressToString(doc.address) ?? null);
   return {
     id: (doc._id || doc.id || '').toString(),
     name: doc.name ?? '',
     type: doc.type ?? 'mechanic',
-    address: addressToString(doc.address) ?? null,
+    segment: doc.segment ?? 'STANDARD',
+    isActive: doc.isActive !== false,
+    shopName: doc.shopName ?? null,
+    address,
     phone: doc.phone ?? null,
     email: doc.email ?? null,
     totalOrders: doc.totalOrders ?? 0,
     lastVisit: doc.lastVisit ? (doc.lastVisit instanceof Date ? doc.lastVisit.toISOString().slice(0, 10) : String(doc.lastVisit).slice(0, 10)) : null,
-    archived: doc.archived ?? !doc.isActive,
+    archived: doc.archived ?? false,
     latitude: coords && coords[1] != null ? coords[1] : null,
     longitude: coords && coords[0] != null ? coords[0] : null,
     matriculeFiscale: doc.matriculeFiscale ?? null,
@@ -103,6 +109,8 @@ async function createClient(data) {
   allowed.forEach((k) => { if (data[k] !== undefined) payload[k] = data[k]; });
   if (payload.geoLocation?.coordinates?.length === 2) {
     payload.geoLocation = { type: 'Point', coordinates: payload.geoLocation.coordinates };
+  } else if (data.latitude != null && data.longitude != null) {
+    payload.geoLocation = { type: 'Point', coordinates: [Number(data.longitude), Number(data.latitude)] };
   } else {
     delete payload.geoLocation;
   }
@@ -119,7 +127,9 @@ async function updateClient(id, data, options = {}) {
   allowed.forEach((key) => { if (data[key] !== undefined) client[key] = data[key]; });
   if (data.geoLocation?.coordinates?.length === 2) {
     client.geoLocation = { type: 'Point', coordinates: data.geoLocation.coordinates };
-  } else if (data.geoLocation === null || data.geoLocation === undefined && 'geoLocation' in data) {
+  } else if (data.latitude != null && data.longitude != null) {
+    client.geoLocation = { type: 'Point', coordinates: [Number(data.longitude), Number(data.latitude)] };
+  } else if (data.geoLocation === null || (data.geoLocation === undefined && 'geoLocation' in data)) {
     client.geoLocation = undefined;
   }
   await client.save();
