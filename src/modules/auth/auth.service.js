@@ -9,12 +9,19 @@ const { UnauthorizedError, BadRequestError, ConflictError } = require('../../uti
 
 const tokenStore = new Map(); // In production use Redis for refresh tokens
 
-/** Contract shape: { id, name, email } for auth responses. */
+/** Contract shape: { id, name, email, firstName, lastName, role } for auth and profile. */
 function toAuthUser(doc) {
   if (!doc) return null;
   const id = doc._id ? doc._id.toString() : doc.id;
   const name = [doc.firstName, doc.lastName].filter(Boolean).join(' ').trim() || doc.email || '';
-  return { id, name, email: doc.email || '' };
+  return {
+    id,
+    name,
+    email: doc.email || '',
+    firstName: doc.firstName ?? '',
+    lastName: doc.lastName ?? '',
+    role: doc.role || 'COMMERCIAL',
+  };
 }
 
 // Access token: 15 minutes; Refresh token: 7 days (via env)
