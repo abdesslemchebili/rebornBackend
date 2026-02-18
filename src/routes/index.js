@@ -12,11 +12,13 @@ const circuitRoutes = require('../modules/circuits/circuit.routes');
 const planningRoutes = require('../modules/planning/planning.routes');
 const workSessionRoutes = require('../modules/workSessions/workSession.routes');
 const categoryRoutes = require('../modules/categories/category.routes');
+const uploadRoutes = require('../modules/upload/upload.routes');
 const env = require('../config/env');
 
 const router = express.Router();
 
 router.use('/auth', authRoutes);
+router.use('/upload', uploadRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/users', userRoutes);
 router.use('/clients', clientRoutes);

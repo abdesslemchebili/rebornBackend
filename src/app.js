@@ -2,6 +2,7 @@
  * Express application setup.
  * Middleware order: security, body parsing, routes, then error handler.
  */
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -42,6 +43,10 @@ if (env.swaggerEnabled) {
   const { swaggerMiddleware } = require('./config/swagger');
   app.use('/api-docs', ...swaggerMiddleware());
 }
+
+// Uploaded files: GET /uploads/:filename (public)
+const uploadsDir = path.join(process.cwd(), 'uploads');
+app.use('/uploads', express.static(uploadsDir));
 
 // Root: friendly response when someone opens the service URL
 app.get('/', (req, res) => {

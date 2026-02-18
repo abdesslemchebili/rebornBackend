@@ -21,6 +21,12 @@ const env = {
   // Comma-separated list of allowed origins (e.g. "https://app.reborn.tn,https://web.reborn.tn"), or single origin. Empty/no Origin (e.g. native mobile) is allowed when corsAllowNoOrigin is true.
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:19006',
   corsAllowNoOrigin: process.env.CORS_ALLOW_NO_ORIGIN !== 'false', // default true: allow requests with no Origin (e.g. React Native / native mobile)
+  publicBaseUrl: process.env.PUBLIC_BASE_URL || '',
+  supabase: {
+    url: process.env.SUPABASE_URL || '',
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+    bucket: process.env.SUPABASE_STORAGE_BUCKET || 'uploads',
+  },
 };
 
 // Validate required vars in production

@@ -110,6 +110,24 @@
       ]
     },
     {
+      "name": "Upload",
+      "item": [
+        {
+          "name": "Upload file",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": "", "description": "Image (jpg, png, gif, webp) or PDF. Max 10 MB." }]
+            },
+            "url": { "raw": "{{baseUrl}}/api/v1/upload", "host": ["{{baseUrl}}"], "path": ["api", "v1", "upload"] },
+            "description": "Auth required (cookies). multipart/form-data, field name: file. Returns { success: true, data: { url: \"...\" } }."
+          }
+        }
+      ]
+    },
+    {
       "name": "Users",
       "item": [
         { "name": "List users", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/users?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "users"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}] } } },

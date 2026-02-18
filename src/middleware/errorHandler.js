@@ -44,6 +44,14 @@ function errorHandler(err, req, res, next) {
     return errorResponse(res, 400, 'Invalid identifier', null, 'INVALID_ID');
   }
 
+  // Multer (file upload) errors
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return errorResponse(res, 400, 'File too large', null, 'VALIDATION_ERROR');
+  }
+  if (err.code === 'LIMIT_FILE_COUNT' || err.code === 'LIMIT_UNEXPECTED_FILE') {
+    return errorResponse(res, 400, err.message || 'Invalid file upload', null, 'VALIDATION_ERROR');
+  }
+
   // JWT errors (contract: INVALID_TOKEN for invalid/expired)
   if (err.name === 'JsonWebTokenError') {
     return errorResponse(res, 401, err.message || 'Invalid token', null, 'INVALID_TOKEN');
