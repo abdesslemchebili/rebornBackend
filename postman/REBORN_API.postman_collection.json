@@ -228,7 +228,7 @@
     {
       "name": "Deliveries",
       "item": [
-        { "name": "List deliveries", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/deliveries?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}] } } },
+        { "name": "List deliveries", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/deliveries?page=1&limit=20&date=", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}, {"key": "date", "value": ""}] } } },
         { "name": "Deliveries by date", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/deliveries/by-date?date=2025-02-16", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries", "by-date"], "query": [{"key": "date", "value": "2025-02-16"}] } } },
         { "name": "Deliveries by client", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/deliveries/by-client/{{clientId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries", "by-client", "{{clientId}}"] } } },
         { "name": "Get delivery by ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/deliveries/{{deliveryId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "deliveries", "{{deliveryId}}"] } } },
@@ -268,7 +268,7 @@
     {
       "name": "Payments",
       "item": [
-        { "name": "List payments", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/payments?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}] } } },
+        { "name": "List payments", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/payments?page=1&limit=20&fromDate=&toDate=&client=&status=", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}, {"key": "fromDate", "value": ""}, {"key": "toDate", "value": ""}, {"key": "client", "value": ""}, {"key": "status", "value": ""}] } } },
         { "name": "Payments by client", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/payments/by-client/{{clientId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments", "by-client", "{{clientId}}"] } } },
         { "name": "Payments by date range", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/payments/by-date-range?fromDate=2025-02-01&toDate=2025-02-28", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments", "by-date-range"], "query": [{"key": "fromDate", "value": "2025-02-01"}, {"key": "toDate", "value": "2025-02-28"}] } } },
         { "name": "Get payment by ID", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/payments/{{paymentId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "payments", "{{paymentId}}"] } } },
@@ -360,7 +360,7 @@
       "name": "Work Sessions",
       "item": [
         { "name": "Get active session", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/work-sessions/active", "host": ["{{baseUrl}}"], "path": ["api", "v1", "work-sessions", "active"] } } },
-        { "name": "Session history", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/work-sessions/history?page=1&limit=20", "host": ["{{baseUrl}}"], "path": ["api", "v1", "work-sessions", "history"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}] } } },
+        { "name": "Session history", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/work-sessions/history?page=1&limit=20&fromDate=&toDate=", "host": ["{{baseUrl}}"], "path": ["api", "v1", "work-sessions", "history"], "query": [{"key": "page", "value": "1"}, {"key": "limit", "value": "20"}, {"key": "fromDate", "value": ""}, {"key": "toDate", "value": ""}] } } },
         { "name": "Get session recap", "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/v1/work-sessions/{{sessionId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "work-sessions", "{{sessionId}}"] } } },
         {
           "name": "Start session",
